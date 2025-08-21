@@ -1,4 +1,4 @@
- CREATE TABLE permission (
+CREATE TABLE permission (
     name VARCHAR(50) PRIMARY KEY,
     description TEXT
 );
@@ -26,4 +26,39 @@ CREATE TABLE user (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     permission JSONB DEFAULT '["can_submit_score", "can_view_leaderboard"]',
     CONSTRAINT valid_permissions CHECK (permission <@ (SELECT jsonb_agg(name) FROM permission))
+);
+
+CREATE TABLE game (
+    game_id VARCHAR(50) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    category VARCHAR(50),
+    active BOOLEAN DEFAULT TRUE,
+    max_score INTEGER,
+    min_score INTEGER DEFAULT 0,
+    play_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    leaderboard_enabled BOOLEAN DEFAULT TRUE,
+    team_allowed BOOLEAN DEFAULT TRUE
+);
+
+CREATE TABLE score (
+    id SERIAL PRIMARY KEY,
+    user_id UUID REFERENCES user(user_id),
+    game_id VARCHAR(50) REFERENCES game(game_id),
+    score INTEGER NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    session_id UUID NOT NULL UNIQUE,
+    is_record BOOLEAN DEFAULT FALSE,
+    device VARCHAR(50)
+);
+
+CREATE TABLE global_record (
+    game_id VARCHAR(50) PRIMARY KEY REFERENCES game(game_id),
+    user_id UUID REFERENCES user(user_id),
+    username VARCHAR(50),
+    score INTEGER NOT NULL,
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    session_id UUID NOT NULL UNIQUE
 );

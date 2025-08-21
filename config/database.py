@@ -1,7 +1,6 @@
 import redis
 import psycopg2
 from psycopg2.extras import RealDictCursor
-
 from config.settings import settings
 
 
