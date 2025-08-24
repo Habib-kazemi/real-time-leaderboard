@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from config.database import get_redis_client, get_postgres_conn
 
@@ -13,7 +13,8 @@ class UserModel:
         """Create a new user in Redis and PostgreSQL."""
         user_id = str(uuid.uuid4())
         user_data["user_id"] = user_id
-        user_data["created_at"] = int(datetime.utcnow().timestamp() * 1000)
+        user_data["created_at"] = int(
+            datetime.now(timezone.utc).timestamp() * 1000)
         user_data["permission"] = json.dumps(
             [perm.value for perm in user_data["permission"]])
         user_data["team_member"] = json.dumps(user_data["team_member"])

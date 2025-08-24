@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import HTTPException
 from config.database import get_postgres_conn, get_redis_client
 from feature.game.model import GameModel
@@ -33,7 +33,7 @@ async def update_global_record(score_id: int, user_id: str) -> dict:
             "user_id": user_id,
             "username": user["username"],
             "score": new_score,
-            "timestamp": datetime.utcnow().timestamp() * 1000,
+            "timestamp": datetime.now(timezone.utc).timestamp() * 1000,
             "session_id": str(session_id)
         }
         await GlobalRecordModel.update_global_record(record_data)

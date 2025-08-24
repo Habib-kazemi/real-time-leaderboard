@@ -1,8 +1,8 @@
-from datetime import datetime, timedelta
 import json
+from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
-from passlib.context import CryptContext
 from jose import jwt
+from passlib.context import CryptContext
 from config.database import get_postgres_conn
 from config.settings import settings
 from feature.user.model import UserModel
@@ -26,7 +26,7 @@ async def register_user(user: UserCreate) -> dict:
         conn.close()
 
     hashed_password = pwd_context.hash(user.password)
-    user_data = user.dict()
+    user_data = user.model_dump()
     user_data["password"] = hashed_password
     user_data["total_score"] = 0
     user_data["level"] = 1
@@ -53,7 +53,7 @@ async def login_user(username: str, password: str) -> dict:
 
     token = jwt.encode(
         {"sub": user_id, "permissions": permissions,
-            "exp": datetime.utcnow() + timedelta(hours=24)},
+            "exp": datetime.now(timezone.utc) + timedelta(hours=24)},
         settings.JWT_SECRET,
         algorithm="HS256"
     )
