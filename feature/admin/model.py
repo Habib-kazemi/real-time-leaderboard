@@ -38,7 +38,7 @@ class AdminModel:
             with conn.cursor() as cur:
                 update_fields = []
                 values = []
-                for key, value in user_data.items():
+                for key, value in game_data.items():
                     if key != "game_id" and value is not None:
                         update_fields.append(f"{key} = %s")
                         values.append(value)
