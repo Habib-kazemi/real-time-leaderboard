@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from feature.admin.router import router as admin_router
 from feature.game.router import router as game_router
 from feature.global_record.router import router as global_record_router
 from feature.leaderboard.router import router as leaderboard_router
@@ -15,3 +16,4 @@ app.include_router(game_router)
 app.include_router(score_router)
 app.include_router(leaderboard_router)
 app.include_router(global_record_router)
+app.include_router(admin_router)
