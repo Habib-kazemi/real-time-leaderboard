@@ -1,4 +1,5 @@
 from fastapi import HTTPException
+import httpx
 
 from config.database import get_postgres_conn
 from config.permissions import Permission
@@ -12,15 +13,10 @@ async def update_user_by_admin(user: AdminUserUpdate, admin_permissions: list) -
         raise HTTPException(
             status_code=403, detail="Permission can_manage_user required")
 
-    conn = get_postgres_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT user_id FROM user WHERE user_id = %s",
-                        (str(user.user_id),))
-            if not cur.fetchone():
-                raise HTTPException(status_code=404, detail="User not found")
-    finally:
-        conn.close()
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://user-service:8000/v1/user/{user.user_id}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=404, detail="User not found")
 
     user_data = user.model_dump(exclude_unset=True)
     await AdminModel.update_user(user_data)
@@ -33,15 +29,10 @@ async def update_game_by_admin(game: AdminGameUpdate, admin_permissions: list) -
         raise HTTPException(
             status_code=403, detail="Permission can_manage_game required")
 
-    conn = get_postgres_conn()
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT game_id FROM game WHERE game_id = %s", (game.game_id,))
-            if not cur.fetchone():
-                raise HTTPException(status_code=404, detail="Game not found")
-    finally:
-        conn.close()
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://game-service:8001/v1/game/{game.game_id}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=404, detail="Game not found")
 
     game_data = game.model_dump(exclude_unset=True)
     await AdminModel.update_game(game_data)

@@ -1,34 +1,81 @@
 
 services:
-  auth-service:
-    build: .
+  user-service:
+    build: ./services/user
     ports:
       - "8000:8000"
     environment:
-      - JWT_SECRET=your_secret_key
+      - JWT_SECRET=${JWT_SECRET}
       - REDIS_HOST=redis
       - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - redis
+      - postgres
+  game-service:
+    build: ./services/game
+    ports:
+      - "8001:8000"
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - redis
       - postgres
   score-service:
-    build: .
-    ports:
-      - "8001:8000"
-    environment:
-      - JWT_SECRET=your_secret_key
-      - REDIS_HOST=redis
-      - POSTGRES_HOST=postgres
-    depends_on:
-      - redis
-      - postgres
-  leaderboard-service:
-    build: .
+    build: ./services/score
     ports:
       - "8002:8000"
     environment:
       - REDIS_HOST=redis
       - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - redis
+      - postgres
+  leaderboard-service:
+    build: ./services/leaderboard
+    ports:
+      - "8003:8000"
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - redis
+      - postgres
+  global-record-service:
+    build: ./services/global_record
+    ports:
+      - "8004:8000"
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - redis
+      - postgres
+  admin-service:
+    build: ./services/admin
+    ports:
+      - "8005:8000"
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - redis
       - postgres
@@ -39,19 +86,22 @@ services:
   postgres:
     image: postgres:16
     environment:
-      - POSTGRES_USER=leaderboard
-      - POSTGRES_PASSWORD=ppassword
-      - POSTGRES_DB=leaderboard_db
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
   celery:
-    build: .
-    command: celery -A tasks.celery worker --loglevel=info
+    build: ./services/user
+    command: celery -A tasks.celery_app worker --loglevel=info
     environment:
       - REDIS_HOST=redis
       - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
       - redis
       - postgres

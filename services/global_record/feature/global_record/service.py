@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
 from fastapi import HTTPException
+import httpx
+from datetime import datetime, timezone
+
 from config.database import get_postgres_conn, get_redis_client
-from feature.game.model import GameModel
 from feature.global_record.model import GlobalRecordModel
-from feature.user.model import UserModel
 
 
 async def update_global_record(score_id: int, user_id: str) -> dict:
@@ -20,14 +20,19 @@ async def update_global_record(score_id: int, user_id: str) -> dict:
     finally:
         conn.close()
 
-    game = await GameModel.get_game(game_id)
-    if not game:
-        raise HTTPException(status_code=400, detail="Game not found")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://game-service:8001/v1/game/{game_id}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Game not found")
+
+        response = await client.get(f"http://user-service:8000/v1/user/{user_id}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="User not found")
+        user = response.json()
 
     redis_client = get_redis_client()
     current_record = redis_client.hgetall(f"global_record:{game_id}")
     if not current_record or new_score > int(current_record.get("score", 0)):
-        user = await UserModel.get_user(user_id)
         record_data = {
             "game_id": game_id,
             "user_id": user_id,
@@ -37,5 +42,7 @@ async def update_global_record(score_id: int, user_id: str) -> dict:
             "session_id": str(session_id)
         }
         await GlobalRecordModel.update_global_record(record_data)
+        async with httpx.AsyncClient() as client:
+            await client.publish("record_updates", f"global_record:{game_id}:{user_id}:{new_score}")
         return {"message": "Global record updated"}
     return {"message": "Score not high enough for global record"}

@@ -1,7 +1,9 @@
 from fastapi import HTTPException
+import httpx
+from datetime import datetime, timezone
+
 from config.database import get_postgres_conn
 from config.permissions import Permission
-from feature.game.model import GameModel
 from feature.score.model import ScoreModel
 from feature.score.schema import ScoreCreate
 
@@ -12,10 +14,14 @@ async def submit_score(score: ScoreCreate, user_id: str, user_permissions: list)
         raise HTTPException(
             status_code=403, detail="Permission can_submit_score required")
 
-    game = await GameModel.get_game(score.game_id)
-    if not game or not game["active"]:
-        raise HTTPException(
-            status_code=400, detail="Game not found or inactive")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://game-service:8001/v1/game/{score.game_id}")
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=400, detail="Game not found or inactive")
+        game = response.json()
+        if not game["active"]:
+            raise HTTPException(status_code=400, detail="Game is inactive")
 
     conn = get_postgres_conn()
     try:
@@ -28,7 +34,10 @@ async def submit_score(score: ScoreCreate, user_id: str, user_permissions: list)
     finally:
         conn.close()
 
-    score_data = score.dict()
+    score_data = score.model_dump()
     score_data["user_id"] = user_id
     score_id = await ScoreModel.create_score(score_data)
+
+    async with httpx.AsyncClient() as client:
+        await client.publish("score_updates", f"score:{score_id}:{user_id}:{score.game_id}")
     return {"score_id": score_id, "message": "Score submitted successfully"}

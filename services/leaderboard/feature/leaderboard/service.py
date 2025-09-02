@@ -1,8 +1,8 @@
 from fastapi import HTTPException
+import httpx
 
 from config.database import get_postgres_conn
 from config.permissions import Permission
-from feature.game.model import GameModel
 from feature.leaderboard.model import LeaderboardModel
 from feature.leaderboard.schema import LeaderboardResponse
 
@@ -13,10 +13,14 @@ async def get_leaderboard(game_id: str, user_permissions: list, limit: int = 10)
         raise HTTPException(
             status_code=403, detail="Permission can_view_leaderboard required")
 
-    game = await GameModel.get_game(game_id)
-    if not game or not game["leaderboard_enabled"]:
-        raise HTTPException(
-            status_code=400, detail="Game not found or leaderboard disabled")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://game-service:8001/v1/game/{game_id}")
+        if response.status_code != 200:
+            raise HTTPException(
+                status_code=400, detail="Game not found or leaderboard disabled")
+        game = response.json()
+        if not game["leaderboard_enabled"]:
+            raise HTTPException(status_code=400, detail="Leaderboard disabled")
 
     entries = await LeaderboardModel.get_leaderboard(game_id, limit)
     return LeaderboardResponse(game_id=game_id, entries=entries)
@@ -28,9 +32,10 @@ async def get_score_report_by_country(game_id: str, user_permissions: list) -> d
         raise HTTPException(
             status_code=403, detail="Permission can_view_report required")
 
-    game = await GameModel.get_game(game_id)
-    if not game:
-        raise HTTPException(status_code=400, detail="Game not found")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://game-service:8001/v1/game/{game_id}")
+        if response.status_code != 200:
+            raise HTTPException(status_code=400, detail="Game not found")
 
     conn = get_postgres_conn()
     try:
