@@ -1,9 +1,8 @@
+from datetime import datetime, timezone
 from fastapi import HTTPException
 import httpx
-from datetime import datetime, timezone
-
 from config.database import get_postgres_conn, get_redis_client
-from feature.global_record.model import GlobalRecordModel
+from .model import GlobalRecordModel
 
 
 async def update_global_record(score_id: int, user_id: str) -> dict:

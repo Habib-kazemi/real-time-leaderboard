@@ -3,8 +3,8 @@ import httpx
 
 from config.database import get_postgres_conn
 from config.permissions import Permission
-from feature.leaderboard.model import LeaderboardModel
-from feature.leaderboard.schema import LeaderboardResponse
+from .model import LeaderboardModel
+from .schema import LeaderboardResponse
 
 
 async def get_leaderboard(game_id: str, user_permissions: list, limit: int = 10) -> LeaderboardResponse:

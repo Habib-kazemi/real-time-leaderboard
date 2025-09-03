@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from feature.admin.schema import AdminUserUpdate, AdminGameUpdate
-from feature.admin.service import update_user_by_admin, update_game_by_admin
-from feature.user.router import get_current_user
+from services.user.feature.user.router import get_current_user
+from .schema import AdminUserUpdate, AdminGameUpdate
+from .service import update_user_by_admin, update_game_by_admin
 
 
 router = APIRouter(prefix="/v1/admin")

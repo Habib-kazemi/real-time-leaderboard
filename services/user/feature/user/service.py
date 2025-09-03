@@ -5,8 +5,8 @@ from jose import jwt
 from passlib.context import CryptContext
 from config.database import get_postgres_conn
 from config.settings import settings
-from feature.user.model import UserModel
-from feature.user.schema import UserCreate
+from .model import UserModel
+from .schema import UserCreate
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -1,10 +1,8 @@
 from fastapi import HTTPException
 import httpx
-
-from config.database import get_postgres_conn
 from config.permissions import Permission
-from feature.admin.model import AdminModel
-from feature.admin.schema import AdminUserUpdate, AdminGameUpdate
+from .model import AdminModel
+from .schema import AdminUserUpdate, AdminGameUpdate
 
 
 async def update_user_by_admin(user: AdminUserUpdate, admin_permissions: list) -> dict:

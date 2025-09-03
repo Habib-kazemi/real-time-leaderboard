@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from feature.leaderboard.schema import LeaderboardResponse
-from feature.leaderboard.service import get_leaderboard, get_score_report_by_country, get_active_users_report
-from feature.user.router import get_current_user
+from services.user.feature.user.router import get_current_user
+from .schema import LeaderboardResponse
+from .service import get_leaderboard, get_score_report_by_country, get_active_users_report
 
 
 router = APIRouter(prefix="/v1")

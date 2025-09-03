@@ -2,8 +2,8 @@ from fastapi import HTTPException
 
 from config.database import get_postgres_conn
 from config.permissions import Permission
-from feature.game.model import GameModel
-from feature.game.schema import GameCreate
+from .model import GameModel
+from .schema import GameCreate
 
 
 async def create_game(game: GameCreate, user_permissions: list) -> dict:

@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 
-from feature.score.schema import ScoreCreate, ScoreResponse
-from feature.score.service import submit_score
-from feature.user.router import get_current_user
+from services.score.feature.score.schema import ScoreCreate, ScoreResponse
+from services.score.feature.score.service import submit_score
+from services.user.feature.user.router import get_current_user
 
 
 router = APIRouter(prefix="/v1")

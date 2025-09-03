@@ -1,8 +1,8 @@
 from datetime import datetime
 from fastapi import APIRouter, Depends
-from feature.score.schema import ScoreCreate, ScoreResponse
-from feature.score.service import submit_score
-from feature.user.router import get_current_user
+from services.user.feature.user.router import get_current_user
+from .schema import ScoreCreate, ScoreResponse
+from .service import submit_score
 
 
 router = APIRouter(prefix="/v1")

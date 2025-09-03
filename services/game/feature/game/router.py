@@ -1,10 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
-
-from config.permissions import Permission
-from feature.game.schema import GameCreate, GameResponse
-from feature.game.service import create_game
-from feature.user.router import get_current_user
-from feature.game.model import GameModel
+from fastapi import APIRouter, Depends
+from services.user.feature.user.router import get_current_user
+from .schema import GameCreate, GameResponse
+from .service import create_game
+from .model import GameModel
 
 
 router = APIRouter(prefix="/v1")

@@ -1,11 +1,9 @@
 from fastapi import HTTPException
 import httpx
-from datetime import datetime, timezone
-
 from config.database import get_postgres_conn
 from config.permissions import Permission
-from feature.score.model import ScoreModel
-from feature.score.schema import ScoreCreate
+from .model import ScoreModel
+from .schema import ScoreCreate
 
 
 async def submit_score(score: ScoreCreate, user_id: str, user_permissions: list) -> dict:

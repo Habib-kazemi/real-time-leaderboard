@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
-from feature.global_record.schema import GlobalRecordResponse
-from feature.global_record.service import update_global_record
-from feature.user.router import get_current_user
+from services.user.feature.user.router import get_current_user
+from .schema import GlobalRecordResponse
+from .service import update_global_record
 
 
 router = APIRouter(prefix="/v1")
