@@ -18,7 +18,7 @@ async def register_user(user: UserCreate) -> dict:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT username FROM user WHERE username = %s", (user.username,))
+                "SELECT username FROM users WHERE username = %s", (user.username,))
             if cur.fetchone():
                 raise HTTPException(
                     status_code=400, detail="Username already exists")
@@ -41,13 +41,12 @@ async def login_user(username: str, password: str) -> dict:
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT user_id, password, permission FROM user WHERE username = %s", (username,))
+                "SELECT user_id, password, permission FROM users WHERE username = %s", (username,))
             user = cur.fetchone()
             if not user or not pwd_context.verify(password, user["password"]):
                 raise HTTPException(
                     status_code=401, detail="Invalid credentials")
-            user_id, _, permissions = user["user_id"], user["password"], json.loads(
-                user["permission"])
+            user_id, permissions = user["user_id"], user["permission"]
     finally:
         conn.close()
 

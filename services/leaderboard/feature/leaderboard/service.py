@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 import httpx
 
+from tasks.celery_app import app as celery_app
 from config.database import get_postgres_conn
 from config.permissions import Permission
 from .model import LeaderboardModel
@@ -79,3 +80,39 @@ async def get_active_users_report(start_time: str, end_time: str, user_permissio
     finally:
         conn.close()
     return {"start_time": start_time, "end_time": end_time, "active_users": result["active_users"]}
+
+
+async def generate_game_comparison_report(user_permissions: list) -> str:
+    """Generate async game comparison report and return task ID."""
+    if Permission.CAN_VIEW_REPORT.value not in user_permissions:
+        raise HTTPException(
+            status_code=403, detail="Permission can_view_report required")
+
+    task = celery_app.send_task("tasks.generate_game_comparison_report")
+    return task.id
+
+
+async def generate_team_performance_report(user_permissions: list) -> str:
+    """Generate async team performance report and return task ID."""
+    if Permission.CAN_VIEW_REPORT.value not in user_permissions:
+        raise HTTPException(
+            status_code=403, detail="Permission can_view_report required")
+
+    task = celery_app.send_task("tasks.generate_team_performance_report")
+    return task.id
+
+
+async def get_report_result(task_id: str, user_permissions: list) -> dict:
+    """Retrieve result of an async report by task ID."""
+    if Permission.CAN_VIEW_REPORT.value not in user_permissions:
+        raise HTTPException(
+            status_code=403, detail="Permission can_view_report required")
+
+    result = celery_app.AsyncResult(task_id)
+    if result.status == "PENDING":
+        return {"task_id": task_id, "status": "pending"}
+    elif result.status == "SUCCESS":
+        return {"task_id": task_id, "status": "success", "result": result.get()}
+    else:
+        raise HTTPException(
+            status_code=400, detail=f"Task status: {result.status}")

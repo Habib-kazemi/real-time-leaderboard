@@ -29,7 +29,7 @@ class UserModel:
             with conn.cursor() as cur:
                 cur.execute(
                     """
-                    INSERT INTO user (user_id, username, password, email, full_name, country, type, team_member, total_score, level, created_at, permission)
+                    INSERT INTO users (user_id, username, password, email, full_name, country, type, team_member, total_score, level, created_at, permission)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, to_timestamp(%s), %s)
                     """,
                     (
