@@ -1,4 +1,4 @@
-from config.database import get_redis_client
+from services.leaderboard.config.database import get_redis_client
 
 
 class LeaderboardModel:

@@ -2,7 +2,7 @@ import json
 import uuid
 from datetime import datetime, timezone
 
-from config.database import get_redis_client, get_postgres_conn
+from services.user.config.database import get_redis_client, get_postgres_conn
 
 
 class UserModel:

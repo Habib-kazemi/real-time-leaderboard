@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List
 from pydantic import BaseModel, EmailStr, Field
-from config.permissions import Permission
+from services.user.config.permissions import Permission
 
 
 class UserCreate(BaseModel):

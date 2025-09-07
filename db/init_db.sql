@@ -1,3 +1,4 @@
+-- Table: permission
 CREATE TABLE IF NOT EXISTS permission (
     name VARCHAR(50) PRIMARY KEY,
     description TEXT

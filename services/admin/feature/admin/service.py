@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 import httpx
-from config.permissions import Permission
+from services.admin.config.permissions import Permission
 from .model import AdminModel
 from .schema import AdminUserUpdate, AdminGameUpdate
 
