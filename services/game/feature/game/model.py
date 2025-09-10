@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from services.game.config.database import get_redis_client, get_postgres_conn
+from config.database import get_redis_client, get_postgres_conn
 
 
 class GameModel:

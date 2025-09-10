@@ -3,8 +3,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from jose import jwt
 from passlib.context import CryptContext
-from services.user.config.database import get_postgres_conn
-from services.user.config.settings import settings
+from config.database import get_postgres_conn
+from config.settings import settings
 from .model import UserModel
 from .schema import UserCreate
 
