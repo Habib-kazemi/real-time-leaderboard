@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from fastapi import HTTPException
 import httpx
-from services.global_record.config.database import get_postgres_conn, get_redis_client
+from config.database import get_postgres_conn, get_redis_client
 from .model import GlobalRecordModel
 
 
