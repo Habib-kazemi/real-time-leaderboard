@@ -1,7 +1,7 @@
 import redis
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from config.settings import settings
+from .settings import settings
 
 
 def get_redis_client():

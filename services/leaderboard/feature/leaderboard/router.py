@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import json
+from fastapi import APIRouter, WebSocket, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import httpx
-
+from shared.config.database import get_redis_client
 from .schema import LeaderboardResponse
 from .service import (
     get_leaderboard,
@@ -15,6 +16,25 @@ from .service import (
 router = APIRouter(prefix="/v1")
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="http://user-service:8000/v1/login")
+
+
+@router.websocket("/ws/leaderboard/{game_id}")
+async def websocket_leaderboard(websocket: WebSocket, game_id: str):
+    await websocket.accept()
+    redis = await get_redis_client()
+    pubsub = redis.pubsub()
+    await pubsub.subscribe(f"leaderboard:{game_id}")
+
+    try:
+        while True:
+            message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
+            if message:
+                await websocket.send_text(json.dumps(message["data"]))
+    except Exception as e:
+        await websocket.close()
+    finally:
+        await pubsub.unsubscribe(f"leaderboard:{game_id}")
+        await redis.close()
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):

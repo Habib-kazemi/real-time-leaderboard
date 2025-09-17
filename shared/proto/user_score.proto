@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package user_score;
+
+service UserScoreService {
+  rpc GetUserScore (UserScoreRequest) returns (UserScoreResponse);
+}
+
+message UserScoreRequest {
+  string user_id = 1;
+  string game_id = 2;
+}
+
+message UserScoreResponse {
+  int32 score = 1;
+  string username = 2;
+}

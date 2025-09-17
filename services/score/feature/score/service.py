@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 import httpx
-from config.database import get_postgres_conn
-from config.permissions import Permission
+from shared.config.database import get_postgres_conn
+from shared.config.permissions import Permission
 from .model import ScoreModel
 from .schema import ScoreCreate
 
