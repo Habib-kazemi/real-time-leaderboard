@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from config.database import get_postgres_conn
+from shared.config.database import get_postgres_conn
 
 
 class AdminModel:

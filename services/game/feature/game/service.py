@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 
-from config.database import get_postgres_conn
-from config.permissions import Permission
+from shared.config.database import get_postgres_conn
+from shared.config.permissions import Permission
 from .model import GameModel
 from .schema import GameCreate
 

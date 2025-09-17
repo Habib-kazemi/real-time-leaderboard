@@ -1,4 +1,4 @@
-from config.database import get_redis_client, get_postgres_conn
+from shared.config.database import get_redis_client, get_postgres_conn
 
 
 class GlobalRecordModel:

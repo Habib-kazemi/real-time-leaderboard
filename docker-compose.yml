@@ -1,135 +1,154 @@
 services:
   user-service:
-    build: ./services/user
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
     ports:
       - "8000:8000"
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/shared
       - JWT_SECRET=${JWT_SECRET}
+      - RABBITMQ_HOST=rabbitmq
       - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
+      - rabbitmq
       - redis
       - postgres
-
-  user-celery:
-    build: ./services/user
-    command: celery -A tasks.celery_app worker --loglevel=info
-    environment:
-      - PYTHONPATH=/app
-      - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
-      - POSTGRES_HOST=postgres
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    depends_on:
-      - redis
-      - postgres
+    volumes:
+      - ./shared:/app/shared
 
   game-service:
-    build: ./services/game
+    build:
+      context: .
+      dockerfile: services/game/Dockerfile
     ports:
       - "8001:8000"
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
       - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
+      - rabbitmq
       - redis
       - postgres
+    volumes:
+      - ./shared:/app/shared
 
   score-service:
-    build: ./services/score
+    build:
+      context: .
+      dockerfile: services/score/Dockerfile
     ports:
       - "8002:8000"
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
       - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
+      - rabbitmq
       - redis
       - postgres
+    volumes:
+      - ./shared:/app/shared
 
   leaderboard-service:
-    build: ./services/leaderboard
+    build:
+      context: .
+      dockerfile: services/leaderboard/Dockerfile
     ports:
       - "8003:8000"
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
       - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
+      - rabbitmq
       - redis
       - postgres
-
-  leaderboard-celery:
-    build: ./services/leaderboard
-    command: celery -A tasks.celery_app worker --loglevel=info
-    environment:
-      - PYTHONPATH=/app
-      - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
-      - POSTGRES_HOST=postgres
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-    depends_on:
-      - redis
-      - postgres
+    volumes:
+      - ./shared:/app/shared
 
   global-record-service:
-    build: ./services/global_record
+    build:
+      context: .
+      dockerfile: services/global_record/Dockerfile
     ports:
       - "8004:8000"
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
       - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
+      - rabbitmq
       - redis
       - postgres
+    volumes:
+      - ./shared:/app/shared
 
   admin-service:
-    build: ./services/admin
+    build:
+      context: .
+      dockerfile: services/admin/Dockerfile
     ports:
       - "8005:8000"
     environment:
-      - PYTHONPATH=/app
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
       - REDIS_HOST=redis
-      - REDIS_PORT=${REDIS_PORT}
+      - REDIS_PORT=6379
       - POSTGRES_HOST=postgres
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
     depends_on:
+      - rabbitmq
       - redis
       - postgres
+    volumes:
+      - ./shared:/app/shared
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    volumes:
+      - ./rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
 
   redis:
-    image: redis:7.4
+    image: redis:7
     ports:
       - "6379:6379"
+    volumes:
+      - redis_data:/data
 
   postgres:
     image: postgres:16
@@ -142,5 +161,50 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  user-celery:
+    build:
+      context: .
+      dockerfile: services/user/Dockerfile
+    command: celery -A tasks.celery_app worker --loglevel=info
+    environment:
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - rabbitmq
+      - redis
+      - postgres
+    volumes:
+      - ./services/user:/app
+      - ./shared:/app/shared
+
+  leaderboard-celery:
+    build:
+      context: .
+      dockerfile: services/leaderboard/Dockerfile
+    command: celery -A tasks.celery_app worker --loglevel=info
+    environment:
+      - PYTHONPATH=/app:/app/shared
+      - RABBITMQ_HOST=rabbitmq
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    depends_on:
+      - rabbitmq
+      - redis
+      - postgres
+    volumes:
+      - ./services/leaderboard:/app
+      - ./shared:/app/shared
+
 volumes:
   postgres_data:
+  redis_data:

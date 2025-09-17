@@ -2,8 +2,8 @@ from fastapi import HTTPException
 import httpx
 
 from tasks.celery_app import app as celery_app
-from config.database import get_postgres_conn
-from config.permissions import Permission
+from shared.config.database import get_postgres_conn
+from shared.config.permissions import Permission
 from .model import LeaderboardModel
 from .schema import LeaderboardResponse
 

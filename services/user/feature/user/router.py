@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt
 
-from config.settings import settings
+from shared.config.settings import settings
 from .model import UserModel
 from .schema import UserCreate, UserResponse
 from .service import login_user, register_user
