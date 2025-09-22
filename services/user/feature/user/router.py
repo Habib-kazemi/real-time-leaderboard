@@ -7,7 +7,7 @@ from .model import UserModel
 from .schema import UserCreate, UserResponse
 from .service import login_user, register_user
 
-router = APIRouter(prefix="/v1")
+router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/login")
 
 

@@ -13,7 +13,7 @@ from .service import (
     get_report_result
 )
 
-router = APIRouter(prefix="/v1")
+router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="http://user-service:8000/v1/login")
 

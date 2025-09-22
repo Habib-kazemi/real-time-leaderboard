@@ -5,7 +5,7 @@ import httpx
 from .schema import GameCreate
 from .service import create_game
 
-router = APIRouter(prefix="/v1")
+router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="http://user-service:8000/v1/login")
 

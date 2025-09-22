@@ -5,7 +5,7 @@ import httpx
 from .schema import GlobalRecordResponse
 from .service import update_global_record
 
-router = APIRouter(prefix="/v1")
+router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="http://user-service:8000/v1/login")
 
