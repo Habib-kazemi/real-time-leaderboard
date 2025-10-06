@@ -1,7 +1,6 @@
 import json
 import uuid
 from datetime import datetime, timezone
-
 from shared.config.database import get_redis_client, get_postgres_conn
 
 
@@ -16,8 +15,8 @@ class UserModel:
         user_data["created_at"] = int(
             datetime.now(timezone.utc).timestamp() * 1000)
         user_data["permission"] = json.dumps(
-            [perm.value for perm in user_data["permission"]])
-        user_data["team_member"] = json.dumps(user_data["team_member"])
+            user_data.get("permission", ["can_submit_score", "can_view_leaderboard"]))
+        user_data["team_member"] = json.dumps(user_data.get("team_member", []))
 
         # Store in Redis
         redis_client = get_redis_client()
@@ -66,14 +65,23 @@ class UserModel:
         try:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT * FROM user WHERE user_id = %s", (user_id,))
+                    "SELECT user_id, username, password, email, full_name, country, type, team_member, total_score, level, created_at, permission FROM users WHERE user_id = %s", (user_id,))
                 user = cur.fetchone()
                 if user:
-                    user_data = dict(user)
-                    user_data["permission"] = json.loads(
-                        user_data["permission"])
-                    user_data["team_member"] = json.loads(
-                        user_data["team_member"])
+                    user_data = {
+                        "user_id": user["user_id"],
+                        "username": user["username"],
+                        "password": user["password"],
+                        "email": user["email"],
+                        "full_name": user["full_name"],
+                        "country": user["country"],
+                        "type": user["type"],
+                        "team_member": json.loads(user["team_member"]),
+                        "total_score": user["total_score"],
+                        "level": user["level"],
+                        "created_at": int(user["created_at"].timestamp() * 1000),
+                        "permission": json.loads(user["permission"])
+                    }
                     redis_client.hset(f"user:{user_id}", mapping=user_data)
                     return user_data
         finally:
