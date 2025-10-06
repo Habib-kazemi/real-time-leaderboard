@@ -1,14 +1,13 @@
 from fastapi import HTTPException
-
 from shared.config.database import get_postgres_conn
 from shared.config.permissions import Permission
 from .model import GameModel
 from .schema import GameCreate
 
 
-async def create_game(game: GameCreate, user_permissions: list) -> dict:
+async def create_game(game: GameCreate, user_permission: list) -> dict:
     """Create a new game if user has permission."""
-    if Permission.CAN_MANAGE_GAME.value not in user_permissions:
+    if Permission.CAN_MANAGE_GAME.value not in user_permission:
         raise HTTPException(
             status_code=403, detail="Permission can_manage_game required")
 
@@ -23,5 +22,6 @@ async def create_game(game: GameCreate, user_permissions: list) -> dict:
     finally:
         conn.close()
 
-    game_id = await GameModel.create_game(game.dict())
+    game_data = game.model_dump()
+    game_id = await GameModel.create_game(game_data)
     return {"game_id": game_id, "message": "Game created successfully"}

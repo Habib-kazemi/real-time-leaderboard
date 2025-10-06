@@ -1,4 +1,3 @@
-
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from jose import jwt
@@ -7,7 +6,6 @@ from shared.config.database import get_postgres_conn
 from shared.config.settings import settings
 from .model import UserModel
 from .schema import UserCreate
-
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -46,14 +44,14 @@ async def login_user(username: str, password: str) -> dict:
             if not user or not pwd_context.verify(password, user["password"]):
                 raise HTTPException(
                     status_code=401, detail="Invalid credentials")
-            user_id, permissions = user["user_id"], user["permission"]
+            user_id, permission = user["user_id"], user["permission"]
     finally:
         conn.close()
 
     token = jwt.encode(
-        {"sub": user_id, "permissions": permissions,
-            "exp": datetime.now(timezone.utc) + timedelta(hours=24)},
+        {"sub": user_id, "permission": permission,
+         "exp": datetime.now(timezone.utc) + timedelta(hours=24)},
         settings.JWT_SECRET,
-        algorithm="HS256"
+        algorithm=settings.JWT_ALGORITHM
     )
     return {"access_token": token, "token_type": "bearer"}

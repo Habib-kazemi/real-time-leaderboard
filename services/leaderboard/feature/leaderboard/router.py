@@ -1,8 +1,9 @@
 import json
 from fastapi import APIRouter, WebSocket, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-import httpx
+from jose import jwt, JWTError
 from shared.config.database import get_redis_client
+from shared.config.settings import settings
 from .schema import LeaderboardResponse
 from .service import (
     get_leaderboard,
@@ -14,8 +15,7 @@ from .service import (
 )
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="http://user-service:8000/v1/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8000/v1/login")
 
 
 @router.websocket("/ws/leaderboard/{game_id}")
@@ -24,13 +24,12 @@ async def websocket_leaderboard(websocket: WebSocket, game_id: str):
     redis = await get_redis_client()
     pubsub = redis.pubsub()
     await pubsub.subscribe(f"leaderboard:{game_id}")
-
     try:
         while True:
             message = await pubsub.get_message(ignore_subscribe_messages=True, timeout=1.0)
             if message:
                 await websocket.send_text(json.dumps(message["data"]))
-    except Exception as e:
+    except Exception:
         await websocket.close()
     finally:
         await pubsub.unsubscribe(f"leaderboard:{game_id}")
@@ -38,18 +37,24 @@ async def websocket_leaderboard(websocket: WebSocket, game_id: str):
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            "http://user-service:8000/v1/user/me",
-            headers={"Authorization": f"Bearer {token}"}
-        )
-        if response.status_code != 200:
+    try:
+        payload = jwt.decode(token, settings.JWT_SECRET,
+                             algorithms=[settings.JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        permission = payload.get("permission", [])
+        if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        return response.json()
+        return {"user_id": user_id, "permission": permission}
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 @router.get("/leaderboard/{game_id}", response_model=LeaderboardResponse)

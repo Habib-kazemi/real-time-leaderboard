@@ -2,6 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
+
     # PostgreSQL
     POSTGRES_HOST: str = "postgres"
     POSTGRES_USER: str = "leaderboard"
