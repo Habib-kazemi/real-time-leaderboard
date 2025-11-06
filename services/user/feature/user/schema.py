@@ -17,9 +17,9 @@ class UserCreate(BaseModel):
                       description="User type: individual or team")
     team_member: List[str] = Field(
         default_factory=list, description="List of team member user IDs")
-    permission: List[Permission] = Field(
+    permission: List[str] = Field(
         default=[Permission.CAN_SUBMIT_SCORE, Permission.CAN_VIEW_LEADERBOARD],
-        description="List of user permissions"
+        description="List of permission names as strings"
     )
 
 
@@ -35,4 +35,4 @@ class UserResponse(BaseModel):
     total_score: int
     level: int
     created_at: datetime
-    permission: List[Permission]
+    permission: List[str]

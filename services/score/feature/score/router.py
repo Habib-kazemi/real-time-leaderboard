@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from shared.config.settings import settings
-from .schema import ScoreCreate, ScoreResponse
+from .schema import ScoreCreate
 from .service import submit_score
 
 router = APIRouter()
@@ -30,6 +30,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         )
 
 
-@router.post("/score", response_model=ScoreResponse)
-async def submit_score_endpoint(score: ScoreCreate, current_user: dict = Depends(get_current_user)):
+@router.post("/score")
+async def submit_score_endpoint(
+    score: ScoreCreate,
+    current_user: dict = Depends(get_current_user)
+):
     return await submit_score(score, current_user["user_id"], current_user["permission"])

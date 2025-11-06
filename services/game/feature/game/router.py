@@ -4,6 +4,7 @@ from jose import jwt, JWTError
 from shared.config.settings import settings
 from .schema import GameCreate
 from .service import create_game
+from .model import GameModel
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="http://localhost:8000/v1/login")
@@ -33,3 +34,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 @router.post("/game", response_model=dict)
 async def create_game_endpoint(game: GameCreate, current_user: dict = Depends(get_current_user)):
     return await create_game(game, current_user["permission"])
+
+
+@router.get("/game/{game_id}")
+async def get_game_endpoint(game_id: str):
+    game = await GameModel.get_game(game_id)
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return game

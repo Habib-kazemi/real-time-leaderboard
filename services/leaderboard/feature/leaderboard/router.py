@@ -1,5 +1,5 @@
 import json
-from fastapi import APIRouter, WebSocket, Depends, HTTPException, status
+from fastapi import APIRouter, WebSocket, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from shared.config.database import get_redis_client
@@ -58,30 +58,50 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 
 
 @router.get("/leaderboard/{game_id}", response_model=LeaderboardResponse)
-async def get_leaderboard_endpoint(game_id: str, limit: int = 10, current_user: dict = Depends(get_current_user)):
+async def get_leaderboard_endpoint(
+    game_id: str,
+    limit: int = Query(10, ge=1, le=100),
+    current_user: dict = Depends(get_current_user)
+):
     return await get_leaderboard(game_id, current_user["permission"], limit)
 
 
 @router.get("/report/country/{game_id}")
-async def get_score_report_by_country_endpoint(game_id: str, current_user: dict = Depends(get_current_user)):
+async def get_score_report_by_country_endpoint(
+    game_id: str,
+    current_user: dict = Depends(get_current_user)
+):
     return await get_score_report_by_country(game_id, current_user["permission"])
 
 
 @router.get("/report/active-users")
-async def get_active_users_report_endpoint(start_time: str, end_time: str, current_user: dict = Depends(get_current_user)):
+async def get_active_users_report_endpoint(
+    start_time: str = Query(...,
+                            description="ISO format, e.g. 2025-01-01T00:00:00Z"),
+    end_time: str = Query(...,
+                          description="ISO format, e.g. 2025-01-31T23:59:59Z"),
+    current_user: dict = Depends(get_current_user)
+):
     return await get_active_users_report(start_time, end_time, current_user["permission"])
 
 
 @router.post("/report/game-comparison")
-async def generate_game_comparison_report_endpoint(current_user: dict = Depends(get_current_user)):
+async def generate_game_comparison_report_endpoint(
+    current_user: dict = Depends(get_current_user)
+):
     return await generate_game_comparison_report(current_user["permission"])
 
 
 @router.post("/report/team-performance")
-async def generate_team_performance_report_endpoint(current_user: dict = Depends(get_current_user)):
+async def generate_team_performance_report_endpoint(
+    current_user: dict = Depends(get_current_user)
+):
     return await generate_team_performance_report(current_user["permission"])
 
 
 @router.get("/report/result/{task_id}")
-async def get_report_result_endpoint(task_id: str, current_user: dict = Depends(get_current_user)):
+async def get_report_result_endpoint(
+    task_id: str,
+    current_user: dict = Depends(get_current_user)
+):
     return await get_report_result(task_id, current_user["permission"])

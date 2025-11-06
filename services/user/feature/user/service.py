@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta, timezone
 from fastapi import HTTPException
 from jose import jwt
@@ -44,12 +45,16 @@ async def login_user(username: str, password: str) -> dict:
             if not user or not pwd_context.verify(password, user["password"]):
                 raise HTTPException(
                     status_code=401, detail="Invalid credentials")
-            user_id, permission = user["user_id"], user["permission"]
+            user_id = user["user_id"]
+            permission = user["permission"]
+
+            if isinstance(permission, str):
+                permission = json.loads(permission)
     finally:
         conn.close()
 
     token = jwt.encode(
-        {"sub": user_id, "permission": permission,
+        {"sub": user_id,  "permission": permission,
          "exp": datetime.now(timezone.utc) + timedelta(hours=24)},
         settings.JWT_SECRET,
         algorithm=settings.JWT_ALGORITHM

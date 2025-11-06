@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
 from shared.config.settings import settings
-from .schema import GlobalRecordResponse
 from .service import update_global_record
 
 router = APIRouter()
@@ -30,6 +29,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         )
 
 
-@router.post("/global-record", response_model=GlobalRecordResponse)
+@router.post("/global-record")
 async def update_global_record_endpoint(score_id: int, current_user: dict = Depends(get_current_user)):
     return await update_global_record(score_id, current_user["user_id"], current_user["permission"])

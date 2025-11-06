@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from shared.config.database import get_redis_client, get_postgres_conn
 
 
@@ -14,9 +13,21 @@ class GameModel:
         game_data["updated_at"] = game_data["created_at"]
         game_data["play_count"] = 0
 
-        redis_client = get_redis_client()
-        redis_client.hset(f"game:{game_id}", mapping=game_data)
+        # Redis: bool → int
+        redis_data = game_data.copy()
+        bool_fields = ["active", "leaderboard_enabled", "team_allowed"]
+        for field in bool_fields:
+            if field in redis_data:
+                redis_data[field] = int(redis_data[field])
 
+        # PostgreSQL: bool
+        pg_data = game_data
+
+        # Redis
+        redis_client = get_redis_client()
+        redis_client.hset(f"game:{game_id}", mapping=redis_data)
+
+        # PostgreSQL
         conn = get_postgres_conn()
         try:
             with conn.cursor() as cur:
@@ -27,17 +38,17 @@ class GameModel:
                     """,
                     (
                         game_id,
-                        game_data["name"],
-                        game_data["description"],
-                        game_data["category"],
-                        game_data["active"],
-                        game_data["max_score"],
-                        game_data["min_score"],
-                        game_data["play_count"],
-                        game_data["created_at"] / 1000,
-                        game_data["updated_at"] / 1000,
-                        game_data["leaderboard_enabled"],
-                        game_data["team_allowed"]
+                        pg_data["name"],
+                        pg_data["description"],
+                        pg_data["category"],
+                        pg_data["active"],
+                        pg_data["max_score"],
+                        pg_data["min_score"],
+                        pg_data["play_count"],
+                        pg_data["created_at"] / 1000,
+                        pg_data["updated_at"] / 1000,
+                        pg_data["leaderboard_enabled"],
+                        pg_data["team_allowed"]
                     )
                 )
             conn.commit()
@@ -51,6 +62,10 @@ class GameModel:
         redis_client = get_redis_client()
         game_data = redis_client.hgetall(f"game:{game_id}")
         if game_data:
+            bool_fields = ["active", "leaderboard_enabled", "team_allowed"]
+            for field in bool_fields:
+                if field in game_data:
+                    game_data[field] = bool(int(game_data[field]))
             return game_data
 
         conn = get_postgres_conn()
@@ -61,7 +76,12 @@ class GameModel:
                 game = cur.fetchone()
                 if game:
                     game_data = dict(game)
-                    redis_client.hset(f"game:{game_id}", mapping=game_data)
+
+                    redis_data = game_data.copy()
+                    for field in ["active", "leaderboard_enabled", "team_allowed"]:
+                        if field in redis_data:
+                            redis_data[field] = int(redis_data[field])
+                    redis_client.hset(f"game:{game_id}", mapping=redis_data)
                     return game_data
         finally:
             conn.close()
